@@ -1,0 +1,219 @@
+name: 'Terraform Apply for kubernetes cluster in AWS using Vault secrets - works on changes in a PR'
+description: 'This action will perform kubernetes cluster deployment in AWS account using Terraform. Secrets stored in Vault can be used if needed for infra deployment. This action will also decorate the PR with the comment of the terraform commands.'
+author: Paresh Deshmukh
+branding:
+  icon: globe
+  color: purple
+inputs:
+  tf-working-dir:
+    required: true
+    description: 'Terraform working directory'
+  terraform-version:
+    required: true
+    description: 'Terraform version'
+  cluster-name:
+    required: true
+    description: 'Name of the kubernetes cluster'
+  aws-role-to-assume:
+    required: true
+    description: 'Role ARN in AWS with which the connection to AWS will be established'
+  aws-region:
+    required: true
+    description: 'AWS region'
+  pr-dir:
+    required: false
+    description: 'full path of a directory in a PR to filter for the terraform apply'
+outputs:
+  tf-fmt-outcome:
+    description: Outcome of the 'terraform fmt' command
+    value: ${{ steps.fmt.outcome }}
+  tf-validate-outcome:
+    description: Outcome of the 'terraform validate' command
+    value: ${{ steps.validate.outcome }}
+  tf-validate-output:
+    description: Output of the 'terraform validate' command
+    value: ${{ steps.validate.outputs.stdout }}
+  tf-init-outcome:
+    description: Outcome of the 'terraform init' command
+    value: ${{ steps.init.outcome }}
+  tf-plan-output:
+    description: Output of the 'terraform plan' command
+    value: ${{ steps.plan.outputs.stdout }}
+runs:
+  using: "composite"
+  steps:
+    # install kops
+    - name: install kops
+      shell: bash
+      run: |
+        curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+        chmod +x kops
+        sudo mv kops /usr/local/bin/kops
+    
+    # install aws cli
+    - name: install aws cli
+      shell: bash
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install --update
+        
+    # setup the latest version of the vault CLI. 
+    - name: Setup Vault CLI 
+      uses: eLco/setup-vault@v1.0.1
+    
+    # setup kubectl
+    - name: install kubectl
+      shell: bash
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+        
+        chmod +x kubectl
+        mkdir -p ~/.local/bin
+        mv ./kubectl ~/.local/bin/kubectl
+        
+        kubectl version --client
+    
+    # install terraform version
+    - name: HashiCorp - Setup Terraform
+      uses: hashicorp/setup-terraform@v2.0.0
+      with:
+        # The version of Terraform CLI to install
+        terraform-version: ${{ inputs.terraform-version }}
+
+    - name: Get the targets for terraform plan and apply
+      id: get-targets
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: bash
+      run: |
+        echo "Get the string of the targets to pass it to the terraform plan and apply"
+
+        export files_changed=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path')
+        echo "Files changed in a PR:" $files_changed
+
+        targets=$(sh get-targets.sh $files_changed ${{ inputs.pr-dir }})
+        
+        echo "targets: " $targets
+        
+        echo ::set-output name=targets::$targets
+
+    - name: Vault Login
+      shell: bash
+      run: vault login -address=https://vault.${{ inputs.cluster-name }}/ -method=github token=${{ secrets.VAULT_GITHUB_TOKEN }}
+    
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: {{ inputs.aws-role-to-assume }}
+        aws-region: {{ inputs.aws-region }}
+
+    - name: export kops config
+      shell: bash
+      run: |
+        kops export kubeconfig --name ${{ inputs.cluster-name }} --state s3://kops-${{ inputs.cluster-name }} --admin
+        # Shows which is the active context
+        kubectl config current-context
+
+        # Allows you to switch between contexts using their name
+        kubectl config use-context ${{ inputs.cluster-name }}
+    
+    #check for the format
+    - name: Terraform fmt
+      id: fmt
+      shell: bash
+      run: |
+        echo "terraform fmt -check"
+        terraform fmt -check
+      continue-on-error: true
+      
+    # initialize the terraform
+    - id: init
+      name: Terraform Init
+      shell: bash
+      run : 
+        echo "terraform init"
+        # terraform init 
+    
+    # terraform validate
+    - name: Terraform Validate
+      id: validate
+      run: 
+        echo "terraform validate -no-color"
+        # terraform validate -no-color
+      
+    # Run terraform plan 
+    - name: terraform plan
+      id: plan
+      shell: bash
+      run: |
+        echo "Run terraform plan and get the output."
+        cd ${{ inputs.tf-working-dir }}
+        # terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }}
+      continue-on-error: true
+
+    # Write back to the PR the output of the terraform plan
+    - name: Write PR comment
+      uses: actions/github-script@v6
+      id: write-pr-comment
+      env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          // 1. Retrieve existing bot comments for the PR
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          })
+          const botComment = comments.find(comment => {
+            return comment.user.type === 'Bot' && comment.body.includes('Terraform Format and Style')
+          })
+          // 2. Prepare format of the comment
+          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+          #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+          <details><summary>Validation Output</summary>
+          \`\`\`\n
+          ${{ steps.validate.outputs.stdout }}
+          \`\`\`
+          </details>
+          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+          
+          <details><summary>Show Plan</summary>
+          
+          \`\`\`\n
+          ${process.env.PLAN}
+          \`\`\`
+          
+          </details>
+          
+          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`,  Workflow: \`${{ github.workflow }}\`*`;
+          
+          // 3. If we have a comment, update it, otherwise create a new one
+          if (botComment) {
+            github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: output
+            })
+          } else {
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+          }
+    # Terraform apply
+    - name: Terraform apply
+      id: apply
+      shell: bash
+      run: |
+        echo "Run terraform apply."
+        cd ${{ inputs.tf-working-dir }}
+        # terraform apply -auto-aprove ${{ steps.get-targets.outputs.targets }}
