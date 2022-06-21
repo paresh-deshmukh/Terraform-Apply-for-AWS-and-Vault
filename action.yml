@@ -1,5 +1,5 @@
 name: 'Terraform Apply for kubernetes cluster in AWS using Vault secrets - works on changes in a PR'
-description: 'This action will perform kubernetes cluster deployment in AWS account using Terraform. Secrets stored in Vault can be used if needed for infra deployment. This action will also decorate the PR with the comment of the terraform commands.'
+description: 'This action will perform kubernetes cluster deployment in AWS account using Terraform using secrets in Hashicorp Vault.'
 author: Paresh Deshmukh
 branding:
   icon: globe
