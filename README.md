@@ -2,7 +2,7 @@
 
 ## About
 
-This action applies a terraform plan for the kubernetes cluster in AWS. Hashicorp Vault secrets, if needed during the terraform apply operation, can be used by logging in to the Vault. 
+This action applies terraform plan for the kubernetes cluster in AWS. Hashicorp Vault secrets can be used during tf apply. 
 
 ## Limitation
 This action works only on a Pull Request.
