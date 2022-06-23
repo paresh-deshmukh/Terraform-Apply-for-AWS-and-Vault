@@ -25,7 +25,7 @@ inputs:
     description: 'GitHub Token used for accessing Vault'
   github-token:
     required: true
-    description: 'Pass ${{ secrets.GITHUB_TOKEN }}'
+    description: 'Pass secret GITHUB_TOKEN'
   pr-dir:
     required: false
     description: 'full path of a directory in a PR to filter for the terraform apply'
