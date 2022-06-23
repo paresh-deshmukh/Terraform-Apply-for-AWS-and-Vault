@@ -115,8 +115,8 @@ runs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        role-to-assume: {{ inputs.aws-role-to-assume }}
-        aws-region: {{ inputs.aws-region }}
+        role-to-assume: ${{ inputs.aws-role-to-assume }}
+        aws-region: ${{ inputs.aws-region }}
 
     - name: export kops config
       shell: bash
@@ -148,6 +148,7 @@ runs:
     # terraform validate
     - name: Terraform Validate
       id: validate
+      shell: bash
       run: 
         echo "terraform validate -no-color"
         # terraform validate -no-color
