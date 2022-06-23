@@ -102,7 +102,7 @@ runs:
         export files_changed=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files.[].path')
         echo "Files changed in a PR:" $files_changed
 
-        targets=$(sh get-targets.sh $files_changed ${{ inputs.pr-dir }})
+        targets=$(sh get-tf-targets.sh $files_changed ${{ inputs.pr-dir }})
         
         echo "targets: " $targets
         
