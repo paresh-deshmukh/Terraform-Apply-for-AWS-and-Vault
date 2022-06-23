@@ -11,7 +11,7 @@ This action works only on a Pull Request.
 
 Below are the input variables for the action.
 
-* `tf-working-dir`
+* 'tf-working-dir`
 
   Path to the terraform root module to apply
 
@@ -47,6 +47,20 @@ Below are the input variables for the action.
   - Type: string
   - Required
 
+* vault-github-token
+
+  GitHub Token used for accessing Vault
+
+  - Type: string
+  - Required
+    
+* `github-token`
+
+  Value of GITHUB_TOKEN
+
+  - Type: string
+  - Required
+
 * `pr-dir`
 
   Specific directory in the PR contents if the PR contains changes in multiple directories 
@@ -59,16 +73,16 @@ Below are the input variables for the action.
 * 'tf-fmt-outcome'
     Outcome of the 'terraform fmt' command
 
-*  tf-validate-outcome:
+*  'tf-validate-outcome'
     Outcome of the 'terraform validate' command
 
-*  tf-validate-output:
+*  'tf-validate-output'
     Output of the 'terraform validate' command
 
-*  tf-init-outcome:
+*  'tf-init-outcome'
     Outcome of the 'terraform init' command
 
-*  tf-plan-output:
+*  'tf-plan-output'
     Output of the 'terraform plan' command
 
 ## Example usage
@@ -107,8 +121,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-
+      
+      - name: Terraform Apply for kubernetes cluster in AWS using Vault secrets - works on changes in a PR
+        id: terraform-apply
+        uses: paresh-deshmukh/terraform-apply-for-aws-using-secrets-in-vault@v1.3
+        with:
+          # Terraform working directory
+          tf-working-dir: $DIR_PATH
+          # Terraform version
+          terraform-version: $TF_VERSION
+          # Name of the kubernetes cluster
+          cluster-name: $CLUSTER_NAME
+          # Role ARN in AWS with which the connection to AWS will be established
+          aws-role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          # AWS region
+          aws-region: $REGION
+          # GitHub Token used for accessing Vault
+          vault-github-token: ${{ secrets.VAULT_GITHUB_TOKEN }}
+          # Pass secret GITHUB_TOKEN
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # full path of a directory in a PR to filter for the terraform apply
+          pr-dir: $DIR_PATH
 ```
 
 
