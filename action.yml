@@ -20,9 +20,13 @@ inputs:
   aws-region:
     required: true
     description: 'AWS region'
+  vault-github-token:
+    required: true
+    description: 'GitHub Token used for accessing Vault'
   pr-dir:
     required: false
     description: 'full path of a directory in a PR to filter for the terraform apply'
+  
 outputs:
   tf-fmt-outcome:
     description: Outcome of the 'terraform fmt' command
@@ -39,6 +43,7 @@ outputs:
   tf-plan-output:
     description: Output of the 'terraform plan' command
     value: ${{ steps.plan.outputs.stdout }}
+    
 runs:
   using: "composite"
   steps:
@@ -102,7 +107,7 @@ runs:
 
     - name: Vault Login
       shell: bash
-      run: vault login -address=https://vault.${{ inputs.cluster-name }}/ -method=github token=${{ secrets.VAULT_GITHUB_TOKEN }}
+      run: vault login -address=https://vault.${{ inputs.cluster-name }}/ -method=github token=${{ inputs.vault-github-token }}
     
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
