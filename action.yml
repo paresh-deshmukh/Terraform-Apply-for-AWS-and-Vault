@@ -23,10 +23,13 @@ inputs:
   vault-github-token:
     required: true
     description: 'GitHub Token used for accessing Vault'
+  github-token:
+    required: true
+    description: 'Pass ${{ secrets.GITHUB_TOKEN }}'
   pr-dir:
     required: false
     description: 'full path of a directory in a PR to filter for the terraform apply'
-  
+    
 outputs:
   tf-fmt-outcome:
     description: Outcome of the 'terraform fmt' command
@@ -91,7 +94,7 @@ runs:
     - name: Get the targets for terraform plan and apply
       id: get-targets
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       shell: bash
       run: |
         echo "Get the string of the targets to pass it to the terraform plan and apply"
@@ -166,7 +169,7 @@ runs:
       env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ inputs.github-token }}
         script: |
           // 1. Retrieve existing bot comments for the PR
           const { data: comments } = await github.rest.issues.listComments({
