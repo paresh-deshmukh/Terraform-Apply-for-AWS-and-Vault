@@ -104,7 +104,7 @@ runs:
         
         chmod +x $GITHUB_ACTION_PATH/get-tf-targets.sh
         
-        targets=$(sh $GITHUB_ACTION_PATH/get-tf-targets.sh $files_changed ${{ inputs.pr-dir }})
+        targets=$(sh $GITHUB_ACTION_PATH/get-tf-targets.sh "${files_changed[@]}" ${{ inputs.pr-dir }})
         
         echo "targets: " $targets
         
