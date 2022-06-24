@@ -3,6 +3,7 @@ dirFilter=false
 
 if [ -z $2 ]; then 
     # echo "Specific dir to parse the files in a PR not provided"; 
+    dirFilter=false
 else 
     # echo "Files in the dir $2 will be parsed for applying terraform changes"; 
     dirFilter=true
