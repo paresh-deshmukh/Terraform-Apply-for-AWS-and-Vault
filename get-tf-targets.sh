@@ -15,7 +15,7 @@ for f in $1; do
 
     # check if the file present in the dir passed in 
     if [ $dirFilter = true ]; then
-        if  [[ "$(readlink -f ${f} | xargs dirname)/" == ${PWD}/$2  ]]; then
+        if  [[ "$(readlink -f ${f} | xargs dirname)/" = ${PWD}/$2  ]]; then
             parseTfFile=true
         else
             parseTfFile=false
