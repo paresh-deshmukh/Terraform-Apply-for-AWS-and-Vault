@@ -1,10 +1,10 @@
 pwd
 dirFilter=false
-if [ -z "$2" ]; then 
-    echo "Specific dir to filter the files in a PR not provided"; 
-else 
+if [ -d "$2" ]; then 
     echo "Files in the dir $2 will be filtered for applying terraform changes"; 
     dirFilter=true
+else 
+    echo "Specific dir to filter the files in a PR not provided"; 
 fi
 
 parseTfFile=true
@@ -13,7 +13,7 @@ targetString=""
 for f in $1; do
 
     # check if the file present in the dir passed in 
-    if [[ $dirFilter == true ]]; then
+    if [ $dirFilter == true ]; then
 
         if  [[ $(readlink -f ${f} | xargs dirname) == $2  ]]; then
             parseTfFile=true
@@ -24,7 +24,7 @@ for f in $1; do
     fi
     
     # parse the file as per inputs provided
-    if  [[ $parseTfFile == true ]]; then
+    if  [ $parseTfFile == true ]; then
         echo "${f} being processed for getting the terraform targets."
         # Get the resources that have been changed
         resources=`cat  "$f" | egrep  -e 'resource.*.*.*{'  | sed 's/resource//' | sed 's/" \{1,\}"/./' | sed 's/"//g' | sed 's/{//' | sed 's/ //g'`
