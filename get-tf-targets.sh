@@ -1,6 +1,8 @@
 pwd
 dirFilter=false
-if [ -d "$2" ]; then 
+echo $2
+
+if [ -d $2 ]; then 
     echo "Files in the dir $2 will be filtered for applying terraform changes"; 
     dirFilter=true
 else 
