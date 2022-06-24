@@ -1,9 +1,9 @@
 pwd
 dirFilter=false
-echo $2
 
-if [ -d $2 ]; then 
-    echo "Files in the dir $2 will be filtered for applying terraform changes"; 
+
+if [ -d $3 ]; then 
+    echo "Files in the dir $3 will be filtered for applying terraform changes"; 
     dirFilter=true
 else 
     echo "Specific dir to filter the files in a PR not provided"; 
@@ -12,12 +12,12 @@ fi
 parseTfFile=true
 
 targetString=""
-for f in $1; do
+for f in $2; do
 
     # check if the file present in the dir passed in 
     if [ $dirFilter == true ]; then
 
-        if  [[ $(readlink -f ${f} | xargs dirname) == $2  ]]; then
+        if  [[ $(readlink -f ${f} | xargs dirname) == $3  ]]; then
             parseTfFile=true
         else
             parseTfFile=false
