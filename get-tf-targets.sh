@@ -14,7 +14,7 @@ targetString=""
 for f in $1; do
 
     # check if the file present in the dir passed in 
-    if [ $dirFilter == true ]; then
+    if [ $dirFilter = true ]; then
         if  [[ "$(readlink -f ${f} | xargs dirname)/" == ${PWD}/$2  ]]; then
             parseTfFile=true
         else
@@ -24,7 +24,7 @@ for f in $1; do
     fi
     
     # parse the file as per inputs provided
-    if  [ $parseTfFile == true ]; then
+    if  [ $parseTfFile = true ]; then
         echo "${f} being processed for getting the terraform targets."
         # Get the resources that have been changed
         resources=`cat  "$f" | egrep  -e 'resource.*.*.*{'  | sed 's/resource//' | sed 's/" \{1,\}"/./' | sed 's/"//g' | sed 's/{//' | sed 's/ //g'`
