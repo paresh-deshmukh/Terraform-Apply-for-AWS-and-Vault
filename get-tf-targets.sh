@@ -1,4 +1,3 @@
-pwd
 dirFilter=false
 
 if [ -z $2 ]; then 
