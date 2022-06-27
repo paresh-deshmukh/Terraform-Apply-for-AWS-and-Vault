@@ -135,6 +135,7 @@ runs:
       id: fmt
       shell: bash
       run: |
+        cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
         echo "terraform fmt -check"
         terraform fmt -check
       continue-on-error: true
@@ -145,6 +146,7 @@ runs:
       shell: bash
       run : |
         pwd
+        cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
         echo "terraform init"
         terraform init 
     
@@ -154,6 +156,7 @@ runs:
       shell: bash
       run: |
         pwd
+        cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
         terraform validate -no-color
       
     # Run terraform plan 
