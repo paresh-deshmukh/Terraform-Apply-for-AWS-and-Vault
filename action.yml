@@ -159,7 +159,7 @@ runs:
         terraform init 
     
     # initialize the terraform
-    - id: init with ssh key
+    - id: init-with-ssh-key
       name: Terraform Init
       shell: bash
       if: ${{ inputs.private-ssh-key }} != "" 
