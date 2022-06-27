@@ -135,7 +135,7 @@ runs:
       id: fmt
       shell: bash
       run: |
-        cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
+        cd ${PWD}/${{ inputs.tf-working-dir }}
         echo "terraform fmt -check"
         terraform fmt -check
       continue-on-error: true
@@ -146,7 +146,7 @@ runs:
       shell: bash
       run : |
         pwd
-        cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
+        cd ${PWD}/${{ inputs.tf-working-dir }}
         echo "terraform init"
         terraform init 
     
@@ -156,7 +156,7 @@ runs:
       shell: bash
       run: |
         pwd
-        cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
+        cd ${PWD}/${{ inputs.tf-working-dir }}
         terraform validate -no-color
       
     # Run terraform plan 
@@ -166,7 +166,7 @@ runs:
       run: |
         pwd
         echo "Run terraform plan and get the output."
-        cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
+        cd ${PWD}/${{ inputs.tf-working-dir }}
         terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }}
       continue-on-error: true
       
@@ -177,5 +177,5 @@ runs:
       run: |
         pwd
         echo "Run terraform apply."
-        cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
+        cd ${PWD}/${{ inputs.tf-working-dir }}
         terraform apply -auto-aprove ${{ steps.get-targets.outputs.targets }}
