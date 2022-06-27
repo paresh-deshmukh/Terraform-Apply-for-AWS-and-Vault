@@ -144,24 +144,26 @@ runs:
       continue-on-error: true
     
     - name: Setup SSH Keys and known_hosts
+      id: setup-ssh
+      shell: bash
       env:
         PRIVATE_KEY: ${{ inputs.private-ssh-key }}
-        if: ${{ inputs.private-ssh-key }} != "" 
-        run: |
-          SSH_PATH="$HOME/.ssh"
+      if: ${{ inputs.private-ssh-key }} != "" 
+      run: |
+        SSH_PATH="$HOME/.ssh"
 
-          mkdir -p "$SSH_PATH"
-          touch "$SSH_PATH/known_hosts"
+        mkdir -p "$SSH_PATH"
+        touch "$SSH_PATH/known_hosts"
 
-          echo "$PRIVATE_KEY" > "$SSH_PATH/id_rsa"
+        echo "$PRIVATE_KEY" > "$SSH_PATH/id_rsa"
 
-          chmod 700 "$SSH_PATH"
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-          chmod 600 "$SSH_PATH/known_hosts"
-          chmod 600 "$SSH_PATH/id_rsa"
+        chmod 700 "$SSH_PATH"
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        chmod 600 "$SSH_PATH/known_hosts"
+        chmod 600 "$SSH_PATH/id_rsa"
 
-          eval $(ssh-agent)
-          ssh-add "$SSH_PATH/id_rsa"
+        eval $(ssh-agent)
+        ssh-add "$SSH_PATH/id_rsa"
       
     - id: init
       name: Terraform Init
