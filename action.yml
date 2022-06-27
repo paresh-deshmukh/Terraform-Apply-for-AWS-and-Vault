@@ -143,44 +143,41 @@ runs:
         terraform fmt -check
       continue-on-error: true
     
+    - name: Setup SSH Keys and known_hosts
+      env:
+        PRIVATE_KEY: ${{ inputs.private-ssh-key }}
+        if: ${{ inputs.private-ssh-key }} != "" 
+        run: |
+          SSH_PATH="$HOME/.ssh"
+
+          mkdir -p "$SSH_PATH"
+          touch "$SSH_PATH/known_hosts"
+
+          echo "$PRIVATE_KEY" > "$SSH_PATH/id_rsa"
+
+          chmod 700 "$SSH_PATH"
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          chmod 600 "$SSH_PATH/known_hosts"
+          chmod 600 "$SSH_PATH/id_rsa"
+
+          eval $(ssh-agent)
+          ssh-add "$SSH_PATH/id_rsa"
+      
     - id: init
       name: Terraform Init
       shell: bash
-      if: ${{ inputs.private-ssh-key }} == "" 
-      env:
-          GIT_SSH_COMMAND: "echo '${{ inputs.private-ssh-key }}' > id_rsa
-          && ssh-keyscan github.com > known_hosts
-          && chmod 600 id_rsa known_hosts
-          && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
-        echo "terraform init"
-        terraform init 
-    
-    # initialize the terraform
-    - id: init-with-ssh-key
-      name: Terraform Init
-      shell: bash
-      if: ${{ inputs.private-ssh-key }} != "" 
-      env:
-          GIT_SSH_COMMAND: "echo '${{ inputs.private-ssh-key }}' > id_rsa
-          && ssh-keyscan github.com > known_hosts
-          && chmod 600 id_rsa known_hosts
-          && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
-      run : |
-        cd ${PWD}/${{ inputs.tf-working-dir }}
-        pwd
-        echo "terraform init"
-        terraform init 
+        terraform init
     
     # terraform validate
     - name: Terraform Validate
       id: validate
       shell: bash
       run: |
-        pwd
         cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
         terraform validate -no-color
       
     # Run terraform plan 
@@ -188,9 +185,9 @@ runs:
       id: plan
       shell: bash
       run: |
-        pwd
         echo "Run terraform plan and get the output."
         cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
         terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }}
       continue-on-error: true
       
@@ -199,7 +196,7 @@ runs:
       id: apply
       shell: bash
       run: |
-        pwd
         echo "Run terraform apply."
         cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
         terraform apply -auto-aprove ${{ steps.get-targets.outputs.targets }}
