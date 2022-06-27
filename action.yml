@@ -143,7 +143,8 @@ runs:
     - id: init
       name: Terraform Init
       shell: bash
-      run : 
+      run : |
+        pwd
         echo "terraform init"
         terraform init 
     
@@ -151,7 +152,8 @@ runs:
     - name: Terraform Validate
       id: validate
       shell: bash
-      run: 
+      run: |
+        pwd
         terraform validate -no-color
       
     # Run terraform plan 
@@ -159,6 +161,7 @@ runs:
       id: plan
       shell: bash
       run: |
+        pwd
         echo "Run terraform plan and get the output."
         cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
         terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }}
@@ -169,6 +172,7 @@ runs:
       id: apply
       shell: bash
       run: |
+        pwd
         echo "Run terraform apply."
         cd $GITHUB_ACTION_PATH/${{ inputs.tf-working-dir }}
         terraform apply -auto-aprove ${{ steps.get-targets.outputs.targets }}
