@@ -37,7 +37,7 @@ Below are the input variables for the action.
 
   Role ARN in AWS with which the connection to AWS will be established
 
-  - Type: string
+  - Type: string(Use Secret)
   - Required
 
 * `aws-region`
@@ -51,16 +51,22 @@ Below are the input variables for the action.
 
   GitHub Token used for accessing Vault
 
-  - Type: string
+  - Type: string(Use Secret)
   - Required
     
 * `github-token`
 
   Value of GITHUB_TOKEN
 
-  - Type: string
+  - Type: string(Use Secret)
   - Required
 
+* 'private-ssh-key'
+  
+  SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
+  
+  - Type: string(Use Secret)
+  - Optional
 * `pr-dir`
 
   Specific directory in the PR contents if the PR contains changes in multiple directories 
