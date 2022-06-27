@@ -26,6 +26,9 @@ inputs:
   github-token:
     required: true
     description: 'Pass secret GITHUB_TOKEN'
+  private-ssh-key:
+    required: false
+    description: ssh key to clone the terraform modules from the remote repo
   pr-dir:
     required: false
     description: 'full path of a directory in a PR to filter for the terraform apply'
@@ -139,14 +142,35 @@ runs:
         echo "terraform fmt -check"
         terraform fmt -check
       continue-on-error: true
-      
-    # initialize the terraform
+    
     - id: init
       name: Terraform Init
       shell: bash
+      if: ${{ inputs.private-ssh-key }} == "" 
+      env:
+          GIT_SSH_COMMAND: "echo '${{ inputs.private-ssh-key }}' > id_rsa
+          && ssh-keyscan github.com > known_hosts
+          && chmod 600 id_rsa known_hosts
+          && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
       run : |
-        pwd
         cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
+        echo "terraform init"
+        terraform init 
+    
+    # initialize the terraform
+    - id: init with ssh key
+      name: Terraform Init
+      shell: bash
+      if: ${{ inputs.private-ssh-key }} != "" 
+      env:
+          GIT_SSH_COMMAND: "echo '${{ inputs.private-ssh-key }}' > id_rsa
+          && ssh-keyscan github.com > known_hosts
+          && chmod 600 id_rsa known_hosts
+          && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
+      run : |
+        cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
         echo "terraform init"
         terraform init 
     
