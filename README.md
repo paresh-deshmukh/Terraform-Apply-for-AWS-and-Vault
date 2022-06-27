@@ -148,6 +148,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # full path of a directory in a PR to filter for the terraform apply
           pr-dir: $DIR_PATH
+          # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 ```
 
 
