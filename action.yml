@@ -143,35 +143,20 @@ runs:
         terraform fmt -check
       continue-on-error: true
     
-    - name: Setup SSH Keys and known_hosts
-      id: setup-ssh
-      shell: bash
-      env:
-        PRIVATE_KEY: ${{ inputs.private-ssh-key }}
-      if: ${{ inputs.private-ssh-key }} != "" 
-      run: |
-        SSH_PATH="$HOME/.ssh"
-
-        mkdir -p "$SSH_PATH"
-        touch "$SSH_PATH/known_hosts"
-
-        echo "$PRIVATE_KEY" > "$SSH_PATH/id_rsa"
-
-        chmod 700 "$SSH_PATH"
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
-        chmod 600 "$SSH_PATH/known_hosts"
-        chmod 600 "$SSH_PATH/id_rsa"
-
-        eval $(ssh-agent)
-        ssh-add "$SSH_PATH/id_rsa"
-      
     - id: init
       name: Terraform Init
       shell: bash
+      if: ${{ inputs.private-ssh-key }} != "" 
+      env:
+          GIT_SSH_COMMAND: "echo '${{ inputs.private-ssh-key }}' > id_rsa
+          && ssh-keyscan github.com > known_hosts
+          && chmod 600 id_rsa known_hosts
+          && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
-        terraform init
+        echo "terraform init"
+        terraform init 
     
     # terraform validate
     - name: Terraform Validate
