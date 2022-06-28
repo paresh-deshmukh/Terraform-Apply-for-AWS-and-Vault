@@ -157,7 +157,7 @@ runs:
         chmod 600 "$SSH_PATH/id_ed25519"
         echo "${{ inputs.SSH_PRIVATE_KEY }}" > "$SSH_PATH/id_ed25519"
         chmod 700 "$SSH_PATH"
-        ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+        ssh-keyscan -t ed25519,rsa github.com >> ~/.ssh/known_hosts
         chmod 600 "$SSH_PATH/known_hosts"
         chmod 600 "$SSH_PATH/id_ed25519"
         eval $(ssh-agent)
