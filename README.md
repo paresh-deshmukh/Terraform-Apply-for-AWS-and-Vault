@@ -2,7 +2,7 @@
 
 ## About
 
-This action will perform kubernetes cluster deployment in AWS account using Terraform using secrets in Hashicorp Vault. 
+This action will perform kubernetes cluster deployment in AWS account using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories
 
 ## Limitation
 This action works only on a Pull Request.
@@ -61,12 +61,20 @@ Below are the input variables for the action.
   - Type: string(Use Secret)
   - Required
 
+*   github-user:
+    
+    GitHub user handle for whom the SSH key is passed for cloning the remote repo
+
+  - Type: string
+  - Optional
+
 * 'private-ssh-key'
   
   SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
   
   - Type: string(Use Secret)
   - Optional
+
 * `pr-dir`
 
   Specific directory in the PR contents if the PR contains changes in multiple directories 
@@ -150,6 +158,8 @@ jobs:
           pr-dir: $DIR_PATH
           # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # GitHub user handle for whom the SSH key is passed for cloning the remote repo
+          github-user: "replace-this-with-github-user-handle"
 ```
 
 
