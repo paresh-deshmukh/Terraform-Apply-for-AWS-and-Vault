@@ -26,6 +26,9 @@ inputs:
   github-token:
     required: true
     description: 'Pass secret GITHUB_TOKEN'
+  github-user:
+    required: false
+    description: GitHub user handle for whom the SSH key is passed for cloning the remote repo
   private-ssh-key:
     required: false
     description: ssh key to clone the terraform modules from the remote repo
@@ -137,21 +140,46 @@ runs:
     - name: Terraform fmt
       id: fmt
       shell: bash
+      continue-on-error: true
       run: |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         echo "terraform fmt -check"
         terraform fmt -check
-      continue-on-error: true
+      
     
+    - name: Add ssh keys for ssh-agent
+      continue-on-error: true
+      shell: bash
+      run: |
+        SSH_PATH="$HOME/.ssh"
+        mkdir -p "$SSH_PATH"
+        touch "$SSH_PATH/id_rsa"
+        chmod 600 "$SSH_PATH/id_rsa"
+        echo "${{ inputs.SSH_PRIVATE_KEY }}" > "$SSH_PATH/id_rsa"
+        chmod 700 "$SSH_PATH"
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        chmod 600 "$SSH_PATH/known_hosts"
+        chmod 600 "$SSH_PATH/id_rsa"
+        eval $(ssh-agent)
+        ssh-add "$SSH_PATH/id_rsa"
+        u=${{ inputs.github-user }}
+        ukeys="$(curl -sL https://github.com/${u}.keys)"
+        echo "Getting ssh keys for GitHub user ${u}: ${ukeys}"
+
+        if [[ ! "${ukeys}" =~ ^ssh- ]]; then
+          echo "ssh keys for user ${u} do not begin with \"ssh-\", got \"${ukeys}\""
+        fi
+        
+        echo "Adding ssh keys for GitHub user ${u} to ~/authorized_keys"
+        echo "${ukeys}" >> ~/authorized_keys
+        echo "Adding ssh keys for GitHub user ${u} to ~/authorized_keys: done"
+
+        ssh-add -l -E sha256
+        echo "SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
+        
     - id: init
       name: Terraform Init
       shell: bash
-      if: ${{ inputs.private-ssh-key }} != "" 
-      env:
-          GIT_SSH_COMMAND: "echo '${{ inputs.private-ssh-key }}' > id_rsa
-          && ssh-keyscan github.com > known_hosts
-          && chmod 600 id_rsa known_hosts
-          && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
