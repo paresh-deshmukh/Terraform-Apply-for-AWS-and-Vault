@@ -95,7 +95,7 @@ runs:
       uses: hashicorp/setup-terraform@v2.0.0
       with:
         # The version of Terraform CLI to install
-        terraform-version: ${{ inputs.terraform-version }}
+        terraform_version: ${{ inputs.terraform-version }}
 
     - name: Get the targets for terraform plan and apply
       id: get-targets
