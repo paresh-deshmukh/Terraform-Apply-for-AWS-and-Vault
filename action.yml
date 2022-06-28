@@ -153,26 +153,23 @@ runs:
       run: |
         SSH_PATH="$HOME/.ssh"
         mkdir -p "$SSH_PATH"
-        touch "$SSH_PATH/id_ed25519"
-        chmod 600 "$SSH_PATH/id_ed25519"
-        echo "${{ inputs.SSH_PRIVATE_KEY }}" > "$SSH_PATH/id_ed25519"
+        HOSTNAME=$(hostname) ; yes | ssh-keygen -t ed25519 -C "$HOSTNAME" -f "$HOME/.ssh/id_ed25519" -P "" && cat $SSH_PATH/id_ed25519
         chmod 700 "$SSH_PATH"
         ssh-keyscan -t ed25519,rsa github.com >> ~/.ssh/known_hosts
         chmod 600 "$SSH_PATH/known_hosts"
         chmod 600 "$SSH_PATH/id_ed25519"
         eval $(ssh-agent)
         ssh-add "$SSH_PATH/id_ed25519"
-        u=${{ inputs.github-user }}
-        ukeys="$(curl -sL https://github.com/${u}.keys)"
-        echo "Getting ssh keys for GitHub user ${u}: ${ukeys}"
+        ukey="$(cat $SSH_PATH/id_ed25519.pub)"
+        echo "Getting ssh keys ${ukey}"
 
-        if [[ ! "${ukeys}" =~ ^ssh- ]]; then
-          echo "ssh keys for user ${u} do not begin with \"ssh-\", got \"${ukeys}\""
+        if [[ ! "${ukey}" =~ ^ssh- ]]; then
+          echo "ssh keys do not begin with \"ssh-\", got \"${ukey}\""
         fi
         
         echo "Adding ssh keys for GitHub user ${u} to ~/authorized_keys"
-        echo "${ukeys}" >> ~/authorized_keys
-        echo "Adding ssh keys for GitHub user ${u} to ~/authorized_keys: done"
+        echo "${ukey}" >> ~/authorized_keys
+        echo "Adding ssh keys to ~/authorized_keys: done"
 
         ssh-add -l -E sha256
         echo "SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
