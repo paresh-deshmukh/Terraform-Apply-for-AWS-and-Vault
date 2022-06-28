@@ -190,6 +190,7 @@ runs:
     - name: Terraform Validate
       id: validate
       shell: bash
+      continue-on-error: true
       run: |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
@@ -204,8 +205,7 @@ runs:
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
         terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }}
-      continue-on-error: true
-      
+           
     # Terraform apply
     - name: Terraform apply
       id: apply
