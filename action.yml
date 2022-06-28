@@ -174,9 +174,16 @@ runs:
         ssh-add -l -E sha256
         echo "SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
         
+        cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
+        echo "terraform init"
+        terraform init 
+        
+        
     - id: init
       name: Terraform Init
       shell: bash
+      if: 1 == 2
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
