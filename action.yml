@@ -174,7 +174,7 @@ runs:
         ssh-add -l -E sha256
         echo "SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
         
-        ssh -T git@hostname
+        ssh -T git@$(hostname)
         
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
