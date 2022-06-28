@@ -214,4 +214,4 @@ runs:
         echo "Run terraform apply."
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
-        terraform apply -auto-aprove ${{ steps.get-targets.outputs.targets }}
+        terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
