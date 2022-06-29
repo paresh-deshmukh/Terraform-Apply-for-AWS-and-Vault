@@ -148,45 +148,9 @@ runs:
       
     
     - name: Add ssh keys for ssh-agent
-      # if: 1 == 2
-      continue-on-error: false
-      shell: bash
-      run: |
-        SSH_PATH="$HOME/.ssh"
-        mkdir -p "$SSH_PATH"
-        touch "$SSH_PATH/id_rsa"
-        chmod 600 "$SSH_PATH/id_rsa"
-        echo "${{ inputs.SSH_PRIVATE_KEY }}" > "$SSH_PATH/id_rsa"
-        chmod 700 "$SSH_PATH"
-        
-        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-        
-        chmod 600 "$SSH_PATH/known_hosts"
-        chmod 600 "$SSH_PATH/id_rsa"
-        
-        eval $(ssh-agent)
-        ssh-add "$SSH_PATH/id_rsa"
-        
-        u=${{ inputs.github-user }}
-        ukeys="$(curl -sL https://github.com/${u}.keys)"
-        echo "Getting ssh keys for GitHub user ${u}: ${ukeys}"
-        if [[ ! "${ukeys}" =~ ^ssh- ]]; then
-          echo "ssh keys for user ${u} do not begin with \"ssh-\", got \"${ukeys}\""
-        fi
-        
-        echo "Adding ssh keys for GitHub user ${u} to ~/authorized_keys"
-        echo "${ukeys}" >> ~/authorized_keys
-        echo "Adding ssh keys for GitHub user ${u} to ~/authorized_keys: done"
-
-        ssh-add -l -E sha256
-        echo "SSH_AUTH_SOCK: $SSH_AUTH_SOCK"
-        
-        ssh -T git@github.com
-        
-        cd ${PWD}/${{ inputs.tf-working-dir }}
-        pwd
-        echo "terraform init"
-        terraform init 
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
         
         
     - id: init
