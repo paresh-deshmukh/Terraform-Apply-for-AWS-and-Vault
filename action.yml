@@ -148,6 +148,7 @@ runs:
       
     
     - name: Add ssh keys for ssh-agent
+      if: 1 == 2
       continue-on-error: false
       shell: bash
       run: |
@@ -191,7 +192,7 @@ runs:
     - id: init
       name: Terraform Init
       shell: bash
-      if: 1 == 2
+      
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
