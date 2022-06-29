@@ -2,7 +2,7 @@
 
 ## About
 
-This action will perform kubernetes cluster deployment in AWS using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories. 
+This action will perform kubernetes cluster deployment in AWS using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories. It also decorates the PR with the outcome of terraform init and plan commands.
 
 ## Limitation
 This action works only on a Pull Request.
