@@ -148,7 +148,7 @@ runs:
       
     
     - name: Add ssh keys for ssh-agent
-      if: 1 == 2
+      # if: 1 == 2
       continue-on-error: false
       shell: bash
       run: |
@@ -165,7 +165,7 @@ runs:
         chmod 600 "$SSH_PATH/id_rsa"
         
         eval $(ssh-agent)
-        ssh-add "$SSH_PATH/id_rsa"
+        # ssh-add "$SSH_PATH/id_rsa"
         
         u=${{ inputs.github-user }}
         ukeys="$(curl -sL https://github.com/${u}.keys)"
@@ -196,9 +196,7 @@ runs:
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
-        SSH_PATH="$HOME/.ssh"
-        mkdir -p "$SSH_PATH"
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        
         echo "terraform init"
         terraform init 
     
