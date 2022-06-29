@@ -153,18 +153,18 @@ runs:
       run: |
         SSH_PATH="$HOME/.ssh"
         mkdir -p "$SSH_PATH"
-        touch "$SSH_PATH/id_ed25519"
-        chmod 600 "$SSH_PATH/id_ed25519"
-        echo "${{ inputs.SSH_PRIVATE_KEY }}" > "$SSH_PATH/id_ed25519"
+        touch "$SSH_PATH/id_rsa"
+        chmod 600 "$SSH_PATH/id_rsa"
+        echo "${{ inputs.SSH_PRIVATE_KEY }}" > "$SSH_PATH/id_rsa"
         chmod 700 "$SSH_PATH"
         
-        ssh-keyscan -t ed25519,rsa github.com >> ~/.ssh/known_hosts
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
         
         chmod 600 "$SSH_PATH/known_hosts"
-        chmod 600 "$SSH_PATH/id_ed25519"
+        chmod 600 "$SSH_PATH/id_rsa"
         
         eval $(ssh-agent)
-        ssh-add "$SSH_PATH/id_ed25519"
+        ssh-add "$SSH_PATH/id_rsa"
         
         u=${{ inputs.github-user }}
         ukeys="$(curl -sL https://github.com/${u}.keys)"
