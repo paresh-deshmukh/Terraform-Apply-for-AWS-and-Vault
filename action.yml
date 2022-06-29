@@ -150,7 +150,7 @@ runs:
     - name: Add ssh keys for ssh-agent
       uses: webfactory/ssh-agent@v0.5.4
       with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ inputs.private-ssh-key }}
         
         
     - id: init
