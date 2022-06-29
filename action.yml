@@ -26,11 +26,8 @@ inputs:
   github-token:
     required: true
     description: 'Pass secret GITHUB_TOKEN'
-  github-user:
-    required: false
-    description: GitHub user handle for whom the SSH key is passed for cloning the remote repo
   private-ssh-key:
-    required: false
+    required: true
     description: ssh key to clone the terraform modules from the remote repo
   pr-dir:
     required: false
@@ -40,12 +37,6 @@ outputs:
   tf-fmt-outcome:
     description: Outcome of the 'terraform fmt' command
     value: ${{ steps.fmt.outcome }}
-  tf-validate-outcome:
-    description: Outcome of the 'terraform validate' command
-    value: ${{ steps.validate.outcome }}
-  tf-validate-output:
-    description: Output of the 'terraform validate' command
-    value: ${{ steps.validate.outputs.stdout }}
   tf-init-outcome:
     description: Outcome of the 'terraform init' command
     value: ${{ steps.init.outcome }}
@@ -56,6 +47,20 @@ outputs:
 runs:
   using: "composite"
   steps:
+    # setup kubectl
+    - name: install kubectl
+      shell: bash
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+        
+        chmod +x kubectl
+        mkdir -p ~/.local/bin
+        mv ./kubectl ~/.local/bin/kubectl
+        
+        kubectl version --client
+        
     # install kops
     - name: install kops
       shell: bash
@@ -75,20 +80,6 @@ runs:
     # setup the latest version of the vault CLI. 
     - name: Setup Vault CLI 
       uses: eLco/setup-vault@v1.0.1
-    
-    # setup kubectl
-    - name: install kubectl
-      shell: bash
-      run: |
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
-        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
-        
-        chmod +x kubectl
-        mkdir -p ~/.local/bin
-        mv ./kubectl ~/.local/bin/kubectl
-        
-        kubectl version --client
     
     # install terraform version
     - name: HashiCorp - Setup Terraform
@@ -118,7 +109,8 @@ runs:
 
     - name: Vault Login
       shell: bash
-      run: vault login -address=https://vault.${{ inputs.cluster-name }}/ -method=github token=${{ inputs.vault-github-token }}
+      run: |
+        vault login -address=https://vault.${{ inputs.cluster-name }}/ -method=github token=${{ inputs.vault-github-token }}
     
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -136,6 +128,12 @@ runs:
         # Allows you to switch between contexts using their name
         kubectl config use-context ${{ inputs.cluster-name }}
     
+    # Add ssh keys for ssh-agent
+    - name: Add ssh keys for ssh-agent
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+          ssh-private-key: ${{ inputs.private-ssh-key }}
+        
     #check for the format
     - name: Terraform fmt
       id: fmt
@@ -146,13 +144,18 @@ runs:
         echo "terraform fmt -check"
         terraform fmt -check
       
-    
-    - name: Add ssh keys for ssh-agent
-      uses: webfactory/ssh-agent@v0.5.4
-      with:
-          ssh-private-key: ${{ inputs.private-ssh-key }}
-        
-        
+    # Run terraform version     
+    - id: version
+      name: Terraform version
+      shell: bash
+      
+      run : |
+        cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
+        echo "Get terraform version"
+        terraform -v
+
+    # Run terraform init 
     - id: init
       name: Terraform Init
       shell: bash
@@ -164,16 +167,6 @@ runs:
         echo "terraform init"
         terraform init 
     
-    # terraform validate
-    - name: Terraform Validate
-      id: validate
-      shell: bash
-      continue-on-error: true
-      run: |
-        cd ${PWD}/${{ inputs.tf-working-dir }}
-        pwd
-        terraform validate -no-color
-      
     # Run terraform plan 
     - name: terraform plan
       id: plan

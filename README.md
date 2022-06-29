@@ -2,16 +2,16 @@
 
 ## About
 
-This action will perform kubernetes cluster deployment in AWS account using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories
+This action will perform kubernetes cluster deployment in AWS using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories. 
 
 ## Limitation
 This action works only on a Pull Request.
 
 ## Inputs
 
-Below are the input variables for the action.
+Below are the inputs for the action.
 
-* 'tf-working-dir`
+* `tf-working-dir`
 
   Path to the terraform root module to apply
 
@@ -47,7 +47,7 @@ Below are the input variables for the action.
   - Type: string
   - Required
 
-* vault-github-token
+* `vault-github-token`
 
   GitHub Token used for accessing Vault
 
@@ -61,19 +61,12 @@ Below are the input variables for the action.
   - Type: string(Use Secret)
   - Required
 
-*   github-user:
-    
-    GitHub user handle for whom the SSH key is passed for cloning the remote repo
-
-  - Type: string
-  - Optional
-
-* 'private-ssh-key'
+* `private-ssh-key`
   
   SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
   
   - Type: string(Use Secret)
-  - Optional
+  - Required
 
 * `pr-dir`
 
@@ -84,19 +77,13 @@ Below are the input variables for the action.
 
 ## Outputs
 
-* 'tf-fmt-outcome'
+* `tf-fmt-outcome`
     Outcome of the 'terraform fmt' command
 
-*  'tf-validate-outcome'
-    Outcome of the 'terraform validate' command
-
-*  'tf-validate-output'
-    Output of the 'terraform validate' command
-
-*  'tf-init-outcome'
+*  `tf-init-outcome`
     Outcome of the 'terraform init' command
 
-*  'tf-plan-output'
+*  `tf-plan-output`
     Output of the 'terraform plan' command
 
 ## Example usage
@@ -158,8 +145,6 @@ jobs:
           pr-dir: $DIR_PATH
           # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # GitHub user handle for whom the SSH key is passed for cloning the remote repo
-          github-user: "replace-this-with-github-user-handle"
 ```
 
 
