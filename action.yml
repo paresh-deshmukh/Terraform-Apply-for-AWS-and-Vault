@@ -196,6 +196,9 @@ runs:
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
+        SSH_PATH="$HOME/.ssh"
+        mkdir -p "$SSH_PATH"
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
         echo "terraform init"
         terraform init 
     
