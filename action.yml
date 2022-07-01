@@ -234,9 +234,12 @@ runs:
     - name: Terraform apply
       id: apply
       shell: bash
-      if: ${{ inputs.apply-terraform }} == 'true'
       run: |
-        echo "Run terraform apply."
-        cd ${PWD}/${{ inputs.tf-working-dir }}
-        pwd
-        terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
+        if [ ${{ inputs.apply-terraform }} = 'true' ]; then
+          echo "Run terraform apply."
+          cd ${PWD}/${{ inputs.tf-working-dir }}
+          pwd
+          terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
+        else
+          echo "Skipping terraform apply as per input parameter."
+        fi
