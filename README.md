@@ -73,7 +73,15 @@ Below are the inputs for the action.
   Specific directory in the PR contents if the PR contains changes in multiple directories 
 
   - Type: string
-  - Required
+  - Optional
+
+* `apply-terraform`
+
+  Pass true/false to apply the terraform plan. By default, terraform aply will not run. 
+
+  - Type: string
+  - Optional
+  - Default: 'false'
 
 ## Outputs
 
