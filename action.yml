@@ -235,7 +235,7 @@ runs:
       id: apply
       shell: bash
       run: |
-        if [ ${{ inputs.apply-terraform }} = 'true' ]; then
+        if [ ${{ inputs.apply-terraform }} = true ]; then
           echo "Run terraform apply."
           cd ${PWD}/${{ inputs.tf-working-dir }}
           pwd
