@@ -83,6 +83,14 @@ Below are the inputs for the action.
   - Optional
   - Default: 'false'
 
+* `update-pr-comment`
+
+  Pass true/false to update the PR comment with terraform plan output. 
+
+  - Type: string
+  - Optional
+  - Default: 'false'
+
 ## Outputs
 
 * `tf-fmt-outcome`
@@ -96,9 +104,7 @@ Below are the inputs for the action.
 
 ## Example usage
 
-### WIP
-
-This example workflow runs when PR is created or made ready for review to main.
+This example workflow runs when PR is created or made ready for review to main. It will show the output of the terraform plan in the PR comment. To apply the terrafom plan directly without review of the plan output, pass 'true' to 'apply-terraform'.
 
 ```yaml
 name: Apply
@@ -153,6 +159,10 @@ jobs:
           pr-dir: $DIR_PATH
           # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # Pass true/false to apply the terraform changes
+          apply-terraform: false
+          # Pass true/false to update the PR comment with terraform plan output
+          update-pr-comment: true
 ```
 
 
