@@ -36,6 +36,11 @@ inputs:
     required: false
     description: 'Pass true/false to apply the terraform changes'
     default: 'false'
+  update-pr-comment:
+    required: false
+    description: 'Pass true/false to update the PR comment with terraform plan output'
+    default: 'false'
+    
 outputs:
   tf-fmt-outcome:
     description: Outcome of the 'terraform fmt' command
@@ -179,11 +184,13 @@ runs:
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
         terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }}
+      continue-on-error: true
 
     # Write back to the PR the output of the terraform plan
     - name: get PR comment
       uses: actions/github-script@v6
       id: prepare-comment
+      if: ${{ inputs.update-pr-comment}} = true 
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
@@ -229,6 +236,11 @@ runs:
               body: output
             })
           }
+    - name: Terraform Plan Status
+      id: check-plan-status
+      shell: bash
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
 
     # Terraform apply
     - name: Terraform apply
