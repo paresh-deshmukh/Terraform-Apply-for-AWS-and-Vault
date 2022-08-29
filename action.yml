@@ -82,7 +82,7 @@ runs:
       shell: bash
       run: |
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
+        unzip -o awscliv2.zip
         sudo ./aws/install --update
         
     # setup the latest version of the vault CLI. 
@@ -236,6 +236,8 @@ runs:
               body: output
             })
           }
+          
+    # Fail if Terraform Plan Status is failure
     - name: Terraform Plan Status
       id: check-plan-status
       shell: bash
