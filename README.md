@@ -139,7 +139,7 @@ jobs:
       
       - name: Terraform Apply for kubernetes cluster in AWS using Vault secrets - works on changes in a PR
         id: terraform-apply
-        uses: paresh-deshmukh/terraform-apply-for-aws-using-secrets-in-vault@v1.3
+        uses: paresh-deshmukh/terraform-apply-for-aws-using-secrets-in-vault@v1.33
         with:
           # Terraform working directory
           tf-working-dir: $DIR_PATH
