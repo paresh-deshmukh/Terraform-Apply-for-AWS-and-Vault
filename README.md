@@ -102,6 +102,9 @@ Below are the inputs for the action.
 *  `tf-plan-output`
     Output of the 'terraform plan' command
 
+*  `tf-plan-outcome`
+    Outcome of the 'terraform plan' command either success or failure
+
 ## Example usage
 
 This example workflow runs when PR is created or made ready for review to main. It will show the output of the terraform plan in the PR comment. To apply the terrafom plan directly without review of the plan output, pass 'true' to 'apply-terraform'.
@@ -160,7 +163,7 @@ jobs:
           # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           # Pass true/false to apply the terraform changes
-          apply-terraform: false
+          apply-terraform: true
           # Pass true/false to update the PR comment with terraform plan output
           update-pr-comment: true
 ```
