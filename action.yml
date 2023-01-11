@@ -51,7 +51,9 @@ outputs:
   tf-plan-output:
     description: Output of the 'terraform plan' command
     value: ${{ steps.plan.outputs.stdout }}
-    
+  tf-plan-outcome:
+    description: Outcome of the 'terraform plan' command either success or failure
+    value: ${{ steps.plan.outcome }}  
 runs:
   using: "composite"
   steps:
