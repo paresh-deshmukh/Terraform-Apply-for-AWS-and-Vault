@@ -27,13 +27,13 @@ for f in $1; do
     if  [ $parseTfFile = true ]; then
         # echo "${f} being processed for getting the terraform targets."
         # Get the resources that have been changed
-        resources=`cat  "$f" | egrep  -e 'resource.*.*.*{'  | sed 's/resource//' | sed 's/" \{1,\}"/./' | sed 's/"//g' | sed 's/{//' | sed 's/ //g'| sed 's#}##g'`
+        resources=`cat  "$f" | egrep  -e '\bresource\b.*.*.*{'  | sed 's/resource//' | sed 's/" \{1,\}"/./' | sed 's/"//g' | sed 's/{//' | sed 's/ //g'| sed 's#}##g'`
         for r in $resources; do
             targetString="${targetString} -target=\"${r}\""
         done
 
         # Get the modules that have been changed 
-        modules=`cat  "$f" | egrep -i -B5  -e 'infrastructure-tf-modules.git//helm/team' | egrep -e 'module.*{' | sed 's/{//' | sed 's/ /./' | sed 's/"//g'| sed 's#}##g'`
+        modules=`cat  "$f" | egrep -i -B5  -e 'infrastructure-tf-modules.git//helm/team' | egrep -e '\bmodule\b.*{' | sed 's/{//' | sed 's/ /./' | sed 's/"//g'| sed 's#}##g'`
 
         for m in $modules; do
             targetString="${targetString} -target=\"${m}\""
