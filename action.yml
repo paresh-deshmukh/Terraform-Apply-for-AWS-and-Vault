@@ -187,6 +187,27 @@ runs:
         pwd
         terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }}
       continue-on-error: true
+  
+    # Fail if Terraform Plan Status is failure
+    - name: Terraform Plan Status
+      id: check-plan-status
+      shell: bash
+      if: steps.plan.outcome == 'failure'
+      run: exit 1
+
+    # Terraform apply
+    - name: Terraform apply
+      id: apply
+      shell: bash
+      run: |
+        if [ ${{ inputs.apply-terraform }} = true ]; then
+          echo "Run terraform apply."
+          cd ${PWD}/${{ inputs.tf-working-dir }}
+          pwd
+          terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
+        else
+          echo "Skipping terraform apply as per input parameter."
+        fi
 
     # Write back to the PR the output of the terraform plan
     - name: get PR comment
@@ -239,23 +260,3 @@ runs:
             })
           }
           
-    # Fail if Terraform Plan Status is failure
-    - name: Terraform Plan Status
-      id: check-plan-status
-      shell: bash
-      if: steps.plan.outcome == 'failure'
-      run: exit 1
-
-    # Terraform apply
-    - name: Terraform apply
-      id: apply
-      shell: bash
-      run: |
-        if [ ${{ inputs.apply-terraform }} = true ]; then
-          echo "Run terraform apply."
-          cd ${PWD}/${{ inputs.tf-working-dir }}
-          pwd
-          terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
-        else
-          echo "Skipping terraform apply as per input parameter."
-        fi
