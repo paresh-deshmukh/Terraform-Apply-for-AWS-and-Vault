@@ -38,7 +38,10 @@ inputs:
   private-key-gh-app:
     required: true
     description: 'Private key for the GitHub app'
-    
+  apply-terraform:
+    required: false
+    description: 'Pass true/false to apply the terraform changes'
+    default: 'false'
 outputs:
   tf-fmt-outcome:
     description: Outcome of the 'terraform fmt' command
@@ -183,7 +186,7 @@ runs:
         echo "Run terraform plan and get the output."
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
-        terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }}
+        terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }} -out=tfplan
       continue-on-error: true
   
     # Fail if Terraform Plan Status is failure
@@ -242,29 +245,18 @@ runs:
               body: output
             })
           }
-          
-    - name: Generate token
-      id: generate_token
-      uses: getsentry/action-github-app-token@v2
-      with:
-        app_id: ${{ inputs.app-id-gh-app }}
-        private_key: ${{ inputs.private-key-gh-app }}
-
-    - name: Wait for approval
-      uses: trstringer/manual-approval@v1
-      with:
-        secret: ${{ steps.generate_token.outputs.token }}
-        approvers: 'bakery-test-team'
-        minimum-approvals: 1
-        issue-title: "Approval for ${{ inputs.cluster-name }} deployment in directory: ${{ inputs.tf-working-dir }}"
 
     # Terraform apply
     - name: Terraform apply
       id: apply
       shell: bash
       run: |
-        echo "Run terraform apply."
-        cd ${PWD}/${{ inputs.tf-working-dir }}
-        pwd
-        terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
+        if [ ${{ inputs.apply-terraform }} = true ]; then
+          echo "Run terraform apply."
+          cd ${PWD}/${{ inputs.tf-working-dir }}
+          pwd
+          terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
+        else
+          echo "Skipping terraform apply as per input parameter."
+        fi
         
