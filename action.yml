@@ -32,13 +32,7 @@ inputs:
   pr-dir:
     required: false
     description: 'full path of a directory in a PR to filter for the terraform apply'
-  app-id-gh-app:
-    required: true
-    description: 'APP ID of the GitHub app'
-  private-key-gh-app:
-    required: true
-    description: 'Private key for the GitHub app'
-  tf-plan-output-filenname:
+  tf-plan-output-filename:
     required: true
     description: 'Name of the output file for terraform plan command'
   apply-terraform:
@@ -201,7 +195,7 @@ runs:
         echo "Run terraform plan and get the output."
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
-        terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }} -out=${{ inputs.tf-plan-output-filenname }}
+        terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }} -out=${{ inputs.tf-plan-output-filename }}
       continue-on-error: true
   
     # Fail if Terraform Plan Status is failure
@@ -255,5 +249,5 @@ runs:
         echo "Run terraform apply."
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
-        terraform apply ${{ inputs.tf-plan-output-filenname }}
+        terraform apply ${{ inputs.tf-plan-output-filename }}
         
