@@ -37,7 +37,7 @@ inputs:
     description: 'Name of the output file for terraform plan command'
   apply-terraform:
     required: false
-    description: 'Pass true/false to apply the terraform changes with provided tf-plan-output-filenname'
+    description: 'Pass true/false to apply the terraform changes with provided tf-plan-output-filename'
     default: 'false'
 outputs:
   tf-fmt-outcome:
