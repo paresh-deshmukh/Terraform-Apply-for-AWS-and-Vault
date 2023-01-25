@@ -2,7 +2,7 @@
 
 ## About
 
-This action will perform kubernetes cluster deployment in AWS using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories. It also decorates the PR with the outcome of terraform init and plan commands.
+This action will perform kubernetes cluster deployment in AWS using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories. It also decorates the PR with the outcome of terraform init and plan commands. Terraform changes are applied based on the comment on the issue created for approval during the workflow execution.
 
 ## Limitation
 This action works only on a Pull Request.
@@ -75,21 +75,6 @@ Below are the inputs for the action.
   - Type: string
   - Optional
 
-* `apply-terraform`
-
-  Pass true/false to apply the terraform plan. By default, terraform aply will not run. 
-
-  - Type: string
-  - Optional
-  - Default: 'false'
-
-* `update-pr-comment`
-
-  Pass true/false to update the PR comment with terraform plan output. 
-
-  - Type: string
-  - Optional
-  - Default: 'false'
 
 ## Outputs
 
@@ -162,10 +147,6 @@ jobs:
           pr-dir: $DIR_PATH
           # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # Pass true/false to apply the terraform changes
-          apply-terraform: true
-          # Pass true/false to update the PR comment with terraform plan output
-          update-pr-comment: true
 ```
 
 
