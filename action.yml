@@ -32,6 +32,12 @@ inputs:
   pr-dir:
     required: false
     description: 'full path of a directory in a PR to filter for the terraform apply'
+  app-id-gh-app:
+    required: true
+    description: 'APP ID of the GitHub app'
+  private-key-gh-app:
+    required: true
+    description: 'Private key for the GitHub app'
     
 outputs:
   tf-fmt-outcome:
@@ -241,8 +247,8 @@ runs:
       id: generate_token
       uses: getsentry/action-github-app-token@v2
       with:
-        app_id: ${{ secrets.GH_INTEGRATION_APP_ID }}
-        private_key: ${{ secrets.GH_INTEGRATION_APP_KEY }}
+        app_id: ${{ inputs.app-id-gh-app }}
+        private_key: ${{ inputs.private-key-gh-app }}
 
     - name: Wait for approval
       uses: trstringer/manual-approval@v1
@@ -262,4 +268,3 @@ runs:
         pwd
         terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
         
-    
