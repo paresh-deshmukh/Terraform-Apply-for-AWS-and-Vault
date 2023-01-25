@@ -74,21 +74,22 @@ Below are the inputs for the action.
 
   - Type: string
   - Optional
+  
+* `tf-plan-output-filename`
 
-* `app-id-gh-app`
-
-  APP ID of the GitHub app
-
-  - Type: string
-  - Required
-
-* `private-key-gh-app`
-
-  Private key for the GitHub app 
+  Name of the output file for terraform plan command
 
   - Type: string
   - Required
 
+* `apply-terraform`
+
+  Pass true/false to apply the terraform changes with provided tf-plan-output-filename
+
+  - Type: string
+  - Optional
+  - Default: false
+  
 
 ## Outputs
 
@@ -139,9 +140,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       
-      - name: Terraform Apply for kubernetes cluster in AWS using Vault secrets - works on changes in a PR
+      - name: Terraform plan for kubernetes cluster in AWS using Vault secrets - works on changes in a PR
         id: terraform-apply
-        uses: paresh-deshmukh/terraform-apply-for-aws-using-secrets-in-vault@v3.44
+        uses: paresh-deshmukh/terraform-apply-for-aws-using-secrets-in-vault@v3.48
         with:
           # Terraform working directory
           tf-working-dir: $DIR_PATH
@@ -161,10 +162,35 @@ jobs:
           pr-dir: $DIR_PATH
           # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          # APP ID of the GitHub app
-          app-id-gh-app: ${{ secrets.GH_INTEGRATION_APP_ID }}
-          # Private key for the GitHub app
-          private-key-gh-app: ${{ secrets.GH_INTEGRATION_APP_KEY }}
+          # Name of the output file for terraform plan command
+          tf-plan-output-filename: 'tfplan'
+          
+      - name: Terraform Apply for kubernetes cluster in AWS using Vault secrets - works on changes in a PR
+        id: terraform-apply
+        uses: paresh-deshmukh/terraform-apply-for-aws-using-secrets-in-vault@v3.48
+        with:
+          # Terraform working directory
+          tf-working-dir: $DIR_PATH
+          # Terraform version
+          terraform-version: $TF_VERSION
+          # Name of the kubernetes cluster
+          cluster-name: $CLUSTER_NAME
+          # Role ARN in AWS with which the connection to AWS will be established
+          aws-role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          # AWS region
+          aws-region: $REGION
+          # GitHub Token used for accessing Vault
+          vault-github-token: ${{ secrets.VAULT_GITHUB_TOKEN }}
+          # Pass secret GITHUB_TOKEN
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # full path of a directory in a PR to filter for the terraform apply
+          pr-dir: $DIR_PATH
+          # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # Name of the output file for terraform plan command
+          tf-plan-output-filename: 'tfplan'
+          # Pass true/false to apply the terraform changes with provided tf-plan-output-filename
+          apply-terraform: true
 ```
 
 
