@@ -32,14 +32,6 @@ inputs:
   pr-dir:
     required: false
     description: 'full path of a directory in a PR to filter for the terraform apply'
-  apply-terraform:
-    required: false
-    description: 'Pass true/false to apply the terraform changes'
-    default: 'false'
-  update-pr-comment:
-    required: false
-    description: 'Pass true/false to update the PR comment with terraform plan output'
-    default: 'false'
     
 outputs:
   tf-fmt-outcome:
@@ -195,25 +187,10 @@ runs:
       if: steps.plan.outcome == 'failure'
       run: exit 1
 
-    # Terraform apply
-    - name: Terraform apply
-      id: apply
-      shell: bash
-      run: |
-        if [ ${{ inputs.apply-terraform }} = true ]; then
-          echo "Run terraform apply."
-          cd ${PWD}/${{ inputs.tf-working-dir }}
-          pwd
-          terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
-        else
-          echo "Skipping terraform apply as per input parameter."
-        fi
-
-    # Write back to the PR the output of the terraform plan
+  # Write back to the PR the output of the terraform plan
     - name: get PR comment
       uses: actions/github-script@v6
       id: prepare-comment
-      if: ${{ inputs.update-pr-comment}} = true 
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
       with:
@@ -260,3 +237,29 @@ runs:
             })
           }
           
+  - name: Generate token
+      id: generate_token
+      uses: getsentry/action-github-app-token@v2
+      with:
+        app_id: ${{ secrets.GH_INTEGRATION_APP_ID }}
+        private_key: ${{ secrets.GH_INTEGRATION_APP_KEY }}
+
+    - name: Wait for approval
+      uses: trstringer/manual-approval@v1
+      with:
+        secret: ${{ steps.generate_token.outputs.token }}
+        approvers: 'bakery-test-team'
+        minimum-approvals: 1
+        issue-title: "Approval for ${{ inputs.cluster-name }} deployment in directory: ${{ inputs.tf-working-dir }}"
+
+    # Terraform apply
+    - name: Terraform apply
+      id: apply
+      shell: bash
+      run: |
+        echo "Run terraform apply."
+        cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
+        terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
+        
+    
