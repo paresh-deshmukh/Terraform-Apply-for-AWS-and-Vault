@@ -2,7 +2,7 @@
 
 ## About
 
-This action will perform kubernetes cluster deployment in AWS using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories. It also decorates the PR with the outcome of terraform init and plan commands. Terraform changes are applied based on the comment on the issue created for approval during the workflow execution.
+This action will perform kubernetes cluster deployment in AWS using Terraform using secrets in Hashicorp Vault. Supports cloning of the terraform modules in the remote repositories. It also decorates the PR with the outcome of terraform init and plan commands. Terraform changes are applied based on the comment on the issue created for approval during the workflow execution. GitHub App is used to generate the token using which the issue is created for approval.
 
 ## Limitation
 This action works only on a Pull Request.
@@ -75,6 +75,20 @@ Below are the inputs for the action.
   - Type: string
   - Optional
 
+* `app-id-gh-app`
+
+  APP ID of the GitHub app
+
+  - Type: string
+  - Required
+
+* `private-key-gh-app`
+
+  Private key for the GitHub app 
+
+  - Type: string
+  - Required
+
 
 ## Outputs
 
@@ -92,7 +106,7 @@ Below are the inputs for the action.
 
 ## Example usage
 
-This example workflow runs when PR is created or made ready for review to main. It will show the output of the terraform plan in the PR comment. To apply the terrafom plan directly without review of the plan output, pass 'true' to 'apply-terraform'.
+This example workflow runs when PR is created or made ready for review to main. It will show the output of the terraform plan in the PR comment. Issue is created to approve the terraform plan generated.
 
 ```yaml
 name: Apply
@@ -127,7 +141,7 @@ jobs:
       
       - name: Terraform Apply for kubernetes cluster in AWS using Vault secrets - works on changes in a PR
         id: terraform-apply
-        uses: paresh-deshmukh/terraform-apply-for-aws-using-secrets-in-vault@v3.33
+        uses: paresh-deshmukh/terraform-apply-for-aws-using-secrets-in-vault@v3.44
         with:
           # Terraform working directory
           tf-working-dir: $DIR_PATH
@@ -147,6 +161,10 @@ jobs:
           pr-dir: $DIR_PATH
           # SSH private key to add to the list of keys for downloading terraform modules from the remote GitHub repository
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # APP ID of the GitHub app
+          app-id-gh-app: ${{ secrets.GH_INTEGRATION_APP_ID }}
+          # Private key for the GitHub app
+          private-key-gh-app: ${{ secrets.GH_INTEGRATION_APP_KEY }}
 ```
 
 
