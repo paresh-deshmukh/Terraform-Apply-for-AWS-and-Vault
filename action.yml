@@ -237,12 +237,12 @@ runs:
             })
           }
           
-  - name: Generate token
-      id: generate_token
-      uses: getsentry/action-github-app-token@v2
-      with:
-        app_id: ${{ secrets.GH_INTEGRATION_APP_ID }}
-        private_key: ${{ secrets.GH_INTEGRATION_APP_KEY }}
+    - name: Generate token
+        id: generate_token
+        uses: getsentry/action-github-app-token@v2
+        with:
+          app_id: ${{ secrets.GH_INTEGRATION_APP_ID }}
+          private_key: ${{ secrets.GH_INTEGRATION_APP_KEY }}
 
     - name: Wait for approval
       uses: trstringer/manual-approval@v1
