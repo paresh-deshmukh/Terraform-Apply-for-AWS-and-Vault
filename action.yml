@@ -38,9 +38,12 @@ inputs:
   private-key-gh-app:
     required: true
     description: 'Private key for the GitHub app'
+  tf-plan-output-filenname:
+    required: true
+    description: 'Name of the output file for terraform plan command'
   apply-terraform:
     required: false
-    description: 'Pass true/false to apply the terraform changes'
+    description: 'Pass true/false to apply the terraform changes with provided tf-plan-output-filenname'
     default: 'false'
 outputs:
   tf-fmt-outcome:
@@ -60,6 +63,7 @@ runs:
   steps:
     # setup kubectl
     - name: install kubectl
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       shell: bash
       run: |
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -74,6 +78,7 @@ runs:
         
     # install kops
     - name: install kops
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       shell: bash
       run: |
         curl -Lo kops https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
@@ -82,6 +87,7 @@ runs:
     
     # install aws cli
     - name: install aws cli
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       shell: bash
       run: |
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -90,16 +96,19 @@ runs:
         
     # setup the latest version of the vault CLI. 
     - name: Setup Vault CLI 
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       uses: eLco/setup-vault@v1.0.1
     
     # install terraform version
     - name: HashiCorp - Setup Terraform
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       uses: hashicorp/setup-terraform@v2.0.0
       with:
         # The version of Terraform CLI to install
         terraform_version: ${{ inputs.terraform-version }}
 
     - name: Get the targets for terraform plan and apply
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       id: get-targets
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
@@ -119,18 +128,21 @@ runs:
         echo ::set-output name=targets::$targets
 
     - name: Vault Login
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       shell: bash
       run: |
         vault login -address=https://vault.${{ inputs.cluster-name }}/ -method=github token=${{ inputs.vault-github-token }}
     
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       with:
         role-to-assume: ${{ inputs.aws-role-to-assume }}
         aws-region: ${{ inputs.aws-region }}
 
     - name: export kops config
       shell: bash
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       run: |
         kops export kubeconfig --name ${{ inputs.cluster-name }} --state s3://kops-${{ inputs.cluster-name }} --admin
         # Shows which is the active context
@@ -142,12 +154,14 @@ runs:
     # Add ssh keys for ssh-agent
     - name: Add ssh keys for ssh-agent
       uses: webfactory/ssh-agent@v0.5.4
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       with:
           ssh-private-key: ${{ inputs.private-ssh-key }}
         
     #check for the format
     - name: Terraform fmt
       id: fmt
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       shell: bash
       continue-on-error: true
       run: |
@@ -159,7 +173,7 @@ runs:
     - id: version
       name: Terraform version
       shell: bash
-      
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
@@ -170,7 +184,7 @@ runs:
     - id: init
       name: Terraform Init
       shell: bash
-      
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       run : |
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
@@ -182,23 +196,25 @@ runs:
     - name: terraform plan
       id: plan
       shell: bash
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       run: |
         echo "Run terraform plan and get the output."
         cd ${PWD}/${{ inputs.tf-working-dir }}
         pwd
-        terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }} -out=tfplan
+        terraform plan -lock=false -no-color ${{ steps.get-targets.outputs.targets }} -out=${{ inputs.tf-plan-output-filenname }}
       continue-on-error: true
   
     # Fail if Terraform Plan Status is failure
     - name: Terraform Plan Status
       id: check-plan-status
       shell: bash
-      if: steps.plan.outcome == 'failure'
+      if:  ${{ inputs.apply-terraform == 'false' && steps.plan.outcome == 'failure' }} 
       run: exit 1
 
   # Write back to the PR the output of the terraform plan
     - name: get PR comment
       uses: actions/github-script@v6
+      if:  ${{ inputs.apply-terraform == 'false' }} 
       id: prepare-comment
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
@@ -250,13 +266,10 @@ runs:
     - name: Terraform apply
       id: apply
       shell: bash
+      if:  ${{ inputs.apply-terraform == 'true' }} 
       run: |
-        if [ ${{ inputs.apply-terraform }} = true ]; then
-          echo "Run terraform apply."
-          cd ${PWD}/${{ inputs.tf-working-dir }}
-          pwd
-          terraform apply -auto-approve ${{ steps.get-targets.outputs.targets }}
-        else
-          echo "Skipping terraform apply as per input parameter."
-        fi
+        echo "Run terraform apply."
+        cd ${PWD}/${{ inputs.tf-working-dir }}
+        pwd
+        terraform apply ${{ inputs.tf-plan-output-filenname }}
         
