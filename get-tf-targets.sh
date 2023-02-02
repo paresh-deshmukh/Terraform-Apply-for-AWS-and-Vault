@@ -33,7 +33,14 @@ for f in $1; do
         done
 
         # Get the modules that have been changed 
-        modules=`cat  "$f" | egrep -i -B5  -e 'infrastructure-tf-modules.git//helm/team' | egrep -e '\bmodule\b.*{' | sed 's/{//' | sed 's/ /./' | sed 's/"//g'| sed 's#}##g'`
+        modules=`cat  "$f" | egrep -i -B5  -e 'infrastructure-tf-modules.git//helm' | egrep -e '\bmodule\b.*{' | sed 's/{//' | sed 's/ /./' | sed 's/"//g'| sed 's#}##g'`
+
+        for m in $modules; do
+            targetString="${targetString} -target=\"${m}\""
+        done
+        
+        # Get the modules that have been changed 
+        modules=`cat  "$f" | egrep -i -B5  -e 'terraform-aws-modules' | egrep -e '\bmodule\b.*{' | sed 's/{//' | sed 's/ /./' | sed 's/"//g'| sed 's#}##g'`
 
         for m in $modules; do
             targetString="${targetString} -target=\"${m}\""
